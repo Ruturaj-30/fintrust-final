@@ -1,0 +1,42 @@
+{
+  "name": "fintrust-final",
+  "version": "2.0.0",
+  "description": "FinTrust Final - Identity and Access Management (IAM) platform for FinTrust Bank Ltd. (college project)",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "vite build --config client/vite.config.ts",
+    "dev": "vite --config client/vite.config.ts",
+    "check": "node scripts/check.js",
+    "reset-demo": "node scripts/reset-demo.js",
+    "test": "node scripts/test.js",
+    "typecheck": "tsc -p client/tsconfig.json --noEmit",
+    "wallet": "node scripts/wallet.js"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.2.5",
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
+    "dotenv": "^16.6.1",
+    "ethers": "^6.17.0",
+    "express": "^4.22.3",
+    "lucide-react": "^0.525.0",
+    "nodemailer": "^10.4.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.3",
+    "recharts": "^3.10.1",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}
