@@ -10,7 +10,7 @@ const { config } = require('./config');
 const { hashPassword, stableStringify, sha256 } = require('./security');
 const { DEFAULTS } = require('./policies');
 const { GENESIS } = require('./audit');
-
+ 
 const ORGANIZATION = {
   name: 'FinTrust Bank Ltd.',
   short_name: 'FinTrust Bank',
@@ -25,7 +25,7 @@ const ORGANIZATION = {
   payment_systems: ['NEFT', 'RTGS', 'IMPS', 'UPI', 'CTS cheque clearing'],
   note: 'FinTrust Bank Ltd. is a fictional bank created for a college project. No real customer data is used.',
 };
-
+ 
 const BRANCHES = [
   { id: 'FTBL0000001', name: 'Head Office, Nariman Point', city: 'Mumbai', state: 'Maharashtra', type: 'Head Office', pincode: '400021' },
   { id: 'FTBL0000101', name: 'Shivajinagar', city: 'Pune', state: 'Maharashtra', type: 'Branch', pincode: '411005' },
@@ -37,12 +37,12 @@ const BRANCHES = [
   { id: 'FTBL0000701', name: 'CG Road', city: 'Ahmedabad', state: 'Gujarat', type: 'Branch', pincode: '380009' },
   { id: 'FTBL0000801', name: 'MI Road', city: 'Jaipur', state: 'Rajasthan', type: 'Branch', pincode: '302001' },
 ];
-
+ 
 const DEPARTMENTS = [
   'Information Technology', 'Information Security', 'Retail Banking', 'Loans & Advances', 'Treasury',
   'Branch Operations', 'Compliance & Risk', 'Human Resources', 'Internal Audit',
 ].map((name, i) => ({ id: `D${String(i + 1).padStart(2, '0')}`, name }));
-
+ 
 // Real Indian banks, used ONLY as settlement / correspondent partners.
 // IFSC prefixes are the banks' public codes.
 const PARTNER_BANKS = [
@@ -57,7 +57,7 @@ const PARTNER_BANKS = [
   { id: 'UBIN', name: 'Union Bank of India', ifsc_prefix: 'UBIN', sector: 'Public sector', headquarters: 'Mumbai', relationship: 'Government business partner' },
   { id: 'INDB', name: 'IndusInd Bank', ifsc_prefix: 'INDB', sector: 'Private sector', headquarters: 'Pune', relationship: 'ATM network sharing partner' },
 ];
-
+ 
 const APPLICATIONS = [
   { id: 'CBS', name: 'Core Banking System', description: 'Customer accounts, savings and current accounts, fixed deposits, branch transactions.', owner_department: 'Branch Operations', risk: 'critical', levels: ['Read', 'Write', 'Admin'] },
   { id: 'PAY', name: 'NEFT / RTGS Payment Gateway', description: 'Sends and receives inter-bank payments through RBI payment systems.', owner_department: 'Branch Operations', risk: 'critical', levels: ['Read', 'Write', 'Admin'] },
@@ -69,9 +69,17 @@ const APPLICATIONS = [
   { id: 'NBK', name: 'Internet Banking Admin Console', description: 'Manages customer internet banking registrations and limits.', owner_department: 'Retail Banking', risk: 'high', levels: ['Read', 'Write', 'Admin'] },
   { id: 'HRM', name: 'HRMS (Payroll & Leave)', description: 'Payslips, leave, attendance and employee records.', owner_department: 'Human Resources', risk: 'medium', levels: ['Read', 'Write', 'Admin'] },
   { id: 'GRC', name: 'Risk & Compliance Register', description: 'RBI circular tracking, risk register and policy exceptions.', owner_department: 'Compliance & Risk', risk: 'medium', levels: ['Read', 'Write', 'Admin'] },
+  // Payment systems (added Nov 2026). Read = enquiry and reports, Write = maker
+  // (enter or initiate), Admin = configuration, limits and user setup.
+  { id: 'CMS', name: 'Debit Card Management (RuPay)', description: 'Issue, block and hotlist RuPay debit cards, regenerate PINs and set ATM / POS / e-commerce limits.', owner_department: 'Retail Banking', risk: 'critical', levels: ['Read', 'Write', 'Admin'] },
+  { id: 'SWF', name: 'SWIFT & Foreign Remittance', description: 'Outward and inward cross-border remittances (SWIFT MT103), LRS payments and FEMA reporting.', owner_department: 'Treasury', risk: 'critical', levels: ['Read', 'Write', 'Admin'] },
+  { id: 'CTS', name: 'Cheque Truncation & Clearing (CTS)', description: 'Inward and outward cheque clearing on the NPCI CTS grid, Positive Pay checks and cheque returns.', owner_department: 'Branch Operations', risk: 'high', levels: ['Read', 'Write', 'Admin'] },
+  { id: 'NACH', name: 'NACH & e-Mandate Hub', description: 'NPCI NACH debits and credits: EMI auto-debits, salary credits and customer e-mandates.', owner_department: 'Branch Operations', risk: 'high', levels: ['Read', 'Write', 'Admin'] },
+  { id: 'AEPS', name: 'AePS & Business Correspondent Portal', description: 'Aadhaar-enabled cash withdrawals and deposits through village Business Correspondent agents and micro-ATMs.', owner_department: 'Retail Banking', risk: 'high', levels: ['Read', 'Write', 'Admin'] },
+  { id: 'BBPS', name: 'Bharat BillPay (BBPS) Operations', description: 'Electricity, mobile, FASTag and other bill payments through Bharat BillPay, with customer complaints.', owner_department: 'Retail Banking', risk: 'medium', levels: ['Read', 'Write', 'Admin'] },
   { id: 'MAIL', name: 'Email & Collaboration', description: 'Bank email, calendar and document sharing.', owner_department: 'Information Technology', risk: 'low', levels: ['Read', 'Write', 'Admin'] },
 ];
-
+ 
 // key, name, role, department, branch, designation, manager key, status, phone
 const PEOPLE = [
   ['admin', 'Rohan Deshmukh', 'System Administrator', 'Information Technology', 'FTBL0000001', 'Head – IT Infrastructure', null, 'active', '9820012345'],
@@ -101,10 +109,10 @@ const PEOPLE = [
   ['neha', 'Neha Bhatt', 'Employee', 'Retail Banking', 'FTBL0000701', 'Relationship Manager', 'suresh', 'invited', '9825156789'],
   ['karan', 'Karan Singh Rathore', 'Employee', 'Branch Operations', 'FTBL0000801', 'Assistant Manager', 'suresh', 'invited', '9829267890'],
 ];
-
+ 
 // Demo sign-in accounts: one per role.
 const DEMO_KEYS = { admin: 'admin', access: 'access', helpdesk: 'helpdesk', auditor: 'auditor', employee: 'employee' };
-
+ 
 function emailFor(key, name) {
   const admin = config.adminEmail;
   if (admin && DEMO_KEYS[key]) {
@@ -115,16 +123,16 @@ function emailFor(key, name) {
   }
   return `${name.toLowerCase().replace(/[^a-z ]/g, '').trim().split(/\s+/).join('.')}@fintrustbank.example`;
 }
-
+ 
 async function seed() {
   const now = Date.now();
   const DAY = 86400000;
   const iso = (msAgo) => new Date(now - msAgo).toISOString();
   const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
-
+ 
   console.log('  Creating the FinTrust Bank demo organisation (first start only)...');
   const hash = await hashPassword(config.demoPassword || crypto.randomBytes(18).toString('base64url'));
-
+ 
   // ---- people
   const ids = {};
   PEOPLE.forEach(([key]) => { ids[key] = crypto.randomUUID(); });
@@ -153,7 +161,7 @@ async function seed() {
       updated_at: created,
     };
   });
-
+ 
   // ---- access grants
   const grants = [];
   const grant = (key, app, level, daysAgo, by = 'access', status = 'active') => grants.push({
@@ -185,7 +193,7 @@ async function seed() {
   // HR "Admin" replaces the basic HR "Read" for Fatima
   const dup = grants.find((g) => g.user_id === ids.fatima && g.application_id === 'HRM' && g.access_level === 'Read');
   Object.assign(dup, { status: 'revoked', revoked_at: iso(60 * DAY), revoked_by: ids.access, revoke_reason: 'Replaced by Admin access' });
-
+ 
   // ---- access requests (some decided, some waiting)
   const requests = [];
   const request = (key, app, level, why, daysAgo, status = 'pending', reviewer = null, comment = null) => {
@@ -220,7 +228,7 @@ async function seed() {
     { status: 'revoked', revoked_at: iso(5 * DAY), revoked_by: ids.access, revoke_reason: 'Replaced by Write access' });
   grants.find((g) => g.user_id === ids.nikhil && g.application_id === 'NBK').request_id = r1.id;
   grants.find((g) => g.user_id === ids.sourav && g.application_id === 'PAY').request_id = r2.id;
-
+ 
   // ---- audit history (with the hash chain)
   const byKey = Object.fromEntries(PEOPLE.map(([key], i) => [key, users[i]]));
   const events = [];
@@ -277,7 +285,7 @@ async function seed() {
     prev = row.hash;
     return row;
   });
-
+ 
   // ---- save, parents first
   await store.bulkInsert('settings', [
     { id: 'organization', value: ORGANIZATION, updated_at: iso(90 * DAY), updated_by: null },
@@ -299,8 +307,24 @@ async function seed() {
     id: u.id, mime: 'image/png', data: placeholders[i % placeholders.length], updated_at: u.created_at, updated_by: null,
   })));
   await store.bulkInsert('audit_log', auditRows);
-
+ 
   return users.filter((u) => Object.keys(DEMO_KEYS).some((k) => ids[k] === u.id));
 }
-
-module.exports = { seed, ORGANIZATION };
+ 
+// Adds any application from the list above that the database does not have yet.
+// Runs at every start, so new applications also reach an existing (already
+// seeded) Supabase database or data file. Existing applications are untouched.
+async function syncApplications() {
+  const missing = APPLICATIONS.filter((a) => !store.get('applications', a.id));
+  for (const app of missing) {
+    await store.insert('applications', { ...app, active: true });
+    await require('./audit').record(null, {
+      action: 'Application added to catalogue', category: 'access',
+      target: { type: 'application', id: app.id, label: app.name }, details: { risk: app.risk, owner: app.owner_department },
+    });
+  }
+  if (missing.length) console.log(`  Added ${missing.length} new application(s): ${missing.map((a) => a.id).join(', ')}`);
+}
+ 
+module.exports = { seed, syncApplications, ORGANIZATION };
+ 

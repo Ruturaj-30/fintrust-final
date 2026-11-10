@@ -36,7 +36,7 @@ Built with **React + TypeScript** (Vite, Tailwind CSS, Lucide icons, Recharts ch
 ### The bank (demo data)
 - **Head office:** Nariman Point, Mumbai. **Branches:** Pune, Bengaluru, Chennai, New Delhi, Kolkata, Hyderabad, Ahmedabad, Jaipur, each with an IFSC-style code like `FTBL0000101`.
 - **26 staff** with Indian names, 9 departments (Treasury, Loans & Advances, Compliance & Risk…).
-- **11 bank applications:** Core Banking System, NEFT/RTGS Payment Gateway, UPI & IMPS Switch, Treasury Dealing, Loan Origination, KYC & CKYC Portal, AML Monitoring (FIU-IND), and more.
+- **17 bank applications:** Core Banking System, NEFT/RTGS Payment Gateway, UPI & IMPS Switch, RuPay Debit Card Management, SWIFT & Foreign Remittance, CTS Cheque Clearing, NACH & e-Mandates, AePS, Bharat BillPay, Treasury Dealing, Loan Origination, KYC & CKYC Portal, AML Monitoring (FIU-IND), and more.
 - **Partner banks:** SBI, HDFC Bank, ICICI Bank, Axis Bank, Kotak Mahindra Bank, PNB, Bank of Baroda, Canara Bank, Union Bank of India, IndusInd Bank.
 - Ready-made scenarios: pending requests, a locked account (Pooja Patil), a suspended teller, a leaver whose access was removed, and 2 invited people.
 

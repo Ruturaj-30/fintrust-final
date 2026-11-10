@@ -7,18 +7,18 @@ const express = require('express');
 const { config, problems } = require('./src/config');
 const store = require('./src/store');
 const mw = require('./src/middleware');
-
+ 
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', /^\d+$/.test(config.trustProxy) ? Number(config.trustProxy) : config.trustProxy);
 app.set('query parser', 'simple');
-
+ 
 app.use(mw.securityHeaders);
 // Small JSON bodies everywhere, except the profile photo upload (max 300 KB image).
 const smallJson = express.json({ limit: '50kb' });
 const photoJson = express.json({ limit: '450kb' });
 app.use((req, res, next) => (req.path === '/api/profile/photo' ? photoJson : smallJson)(req, res, next));
-
+ 
 // ---------------------------------------------------------------------
 // API
 // ---------------------------------------------------------------------
@@ -29,7 +29,7 @@ const apiLimit = mw.rateLimit({ name: 'api', windowMs: 60000, max: 300 });
 // sign-in and permission, so a staff list full of photos does not use up the limit.
 const isPhotoDownload = (req) => req.method === 'GET' && /^\/users\/[^/]+\/photo$/.test(req.path);
 app.use('/api', (req, res, next) => (isPhotoDownload(req) ? next() : apiLimit(req, res, next)));
-
+ 
 let ready = false;
 app.get('/api/health', (req, res) => {
   const list = problems();
@@ -42,11 +42,11 @@ app.get('/api/health', (req, res) => {
     problems: config.isProduction ? (list.length ? ['configuration incomplete, check the server log'] : []) : list,
   });
 });
-
+ 
 app.use('/api', (req, res, next) => (ready ? next() : res.status(503).json({ error: 'The server is still starting. Try again in a few seconds.' })));
 app.use('/api', mw.loadSession);
 app.use('/api/auth', require('./src/routes/auth').router);
-
+ 
 // Everything below needs a signed-in user
 app.use('/api', mw.requireAuth);
 const photos = require('./src/routes/photos');
@@ -57,7 +57,7 @@ app.use('/api', require('./src/routes/access'));
 app.use('/api', require('./src/routes/governance'));
 app.use('/api', require('./src/routes/dashboard'));
 app.use('/api', (req, res) => res.status(404).json({ error: 'API endpoint not found.' }));
-
+ 
 // ---------------------------------------------------------------------
 // Web pages
 // ---------------------------------------------------------------------
@@ -75,7 +75,7 @@ app.get('*', (req, res) => {
   res.sendFile(index);
 });
 app.use(mw.errorHandler);
-
+ 
 // ---------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------
@@ -87,12 +87,13 @@ async function start() {
     if (config.isProduction) process.exit(1);
     console.warn('');
   }
-
+ 
   const where = await store.init();
   let created = null;
   if (store.isEmpty()) created = await require('./src/seed').seed();
+  await require('./src/seed').syncApplications(); // adds newly listed bank applications
   ready = true;
-
+ 
   app.listen(config.port, () => {
     console.log('\n==============================================================');
     console.log('  FinTrust Bank Ltd. · Identity & Access Management');
@@ -109,8 +110,9 @@ async function start() {
     console.log('\n  Press Ctrl + C to stop.\n');
   });
 }
-
+ 
 start().catch((err) => {
   console.error(`\n✖ FinTrust could not start: ${err.message}\n`);
   process.exit(1);
 });
+ 
